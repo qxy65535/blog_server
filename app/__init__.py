@@ -13,9 +13,9 @@ login_manager.login_view = "view.logintest"
 
 app = Flask(__name__, static_url_path="")
 CORS(app)
-# app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://root:software@139.199.71.90/db_exam_manage_system'
-app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://root:software@localhost/blog'
-# app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://root:q87268868@localhost/db_exam_manage_system'
+app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://root:software@139.199.71.90/blog'
+# app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://root:software@localhost/blog'
+# app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://root:q87268868@localhost/blog'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = True
 app.secret_key = 'super secret key'
 app.config['SESSION_TYPE'] = 'filesystem'
@@ -27,6 +27,6 @@ from flask_sqlalchemy import SQLAlchemy
 db = SQLAlchemy(app)
 # from .database.db import Database
 # db = Database()
-from .auth import views
+from .auth import auth
 # from .api import api as api_v1_0
-app.register_blueprint(view)
+app.register_blueprint(auth)

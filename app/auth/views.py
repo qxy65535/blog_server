@@ -41,7 +41,7 @@ def img_add():
                 .replace(":", "") \
                 .replace(".", "") \
                 .replace(" ", "")
-            re_filename = t + "." + filename.split(".")[1]
+            re_filename = t + "." + filename.split(".")[-1]
             file.save(os.path.join(os.path.abspath(path) + "/static/images", re_filename))
             message['url'] = "/images/" + re_filename
         else:

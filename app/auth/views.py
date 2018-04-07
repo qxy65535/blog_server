@@ -69,7 +69,7 @@ def publish():
     tags = request.json['tag']
     # print(request.json['tag'])
 
-    if Article.query.filter_by(title=args["title"]).filter(Article.privacy==0).first() is not None:
+    if Article.query.filter_by(title=args["title"]).first() is not None:
         message["success"] = False
         message["message"] = "文章已存在！请换个标题。"
         return jsonify(message)
@@ -124,7 +124,7 @@ def postlist():
     reqp.add_argument("page", type=int, required=True, location=["json","form"])
     args = reqp.parse_args()
 
-    article = Article.query.order_by(db.desc(Article.id)).\
+    article = Article.query.filter(Article.privacy==0).order_by(db.desc(Article.id)).\
         paginate(args["page"], per_page=5, error_out=False)
     article_list = []
     for item in article.items:

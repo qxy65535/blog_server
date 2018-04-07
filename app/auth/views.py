@@ -159,15 +159,15 @@ def postlist():
 #         message["message"] = "图片删除失败！"
 #     return jsonify(message)
 
-
-@auth.route('/archives')
-def archives():
-    return render_template('archives/index.html', enable='')
-    
-
-@auth.route('/2018/03/12/hello-world/')
-def hello():
-    return render_template('2018/03/12/hello-world/index.html', enable='')
+#
+# @auth.route('/archives')
+# def archives():
+#     return render_template('archives/index.html', enable='')
+#
+#
+# @auth.route('/2018/03/12/hello-world/')
+# def hello():
+#     return render_template('2018/03/12/hello-world/index.html', enable='')
 
 
 @auth.app_errorhandler(404)

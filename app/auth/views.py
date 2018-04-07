@@ -69,7 +69,7 @@ def publish():
     tags = request.json['tag']
     # print(request.json['tag'])
 
-    if Article.query.filter_by(title=args["title"]).first() is not None:
+    if Article.query.filter_by(title=args["title"]).filter(Article.privacy==0).first() is not None:
         message["success"] = False
         message["message"] = "文章已存在！请换个标题。"
         return jsonify(message)

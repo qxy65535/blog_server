@@ -112,6 +112,8 @@ def detail():
     else:
         message["success"] = False
         message["message"] = "找不到这篇文章"
+        article = Article.query.filter_by(id=-1).first()
+        message["res"] = article.article
         return jsonify(message), 404
 
 @auth.route('/postlist', methods=['POST'])

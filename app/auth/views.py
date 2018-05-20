@@ -19,7 +19,7 @@ import numpy as np
 import torch
 from app.util.net import net
 import torch.nn.functional as F
-from skimage.viewer import ImageViewer
+# from skimage.viewer import ImageViewer
 
 
 MESSAGE = {

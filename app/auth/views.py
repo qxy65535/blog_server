@@ -19,7 +19,7 @@ import numpy as np
 import torch
 from app.util.net import net
 import torch.nn.functional as F
-# from skimage.viewer import ImageViewer
+from skimage.viewer import ImageViewer
 
 
 MESSAGE = {
@@ -212,8 +212,8 @@ def recognition():
     # print(mask)
     image.masked_scatter_(mask, im_t)
 
-    # viewer = ImageViewer(image.numpy())
-    # viewer.show()
+    viewer = ImageViewer(image.numpy())
+    viewer.show()
 
     output = F.softmax(net(image.view(1, -1)), 1)
     print(output[0])

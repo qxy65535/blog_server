@@ -17,7 +17,7 @@ from PIL import Image
 import numpy as np
 
 import torch
-from app.util.net import net
+from app.util.net import net_gl121, net_sg, net_noregu
 import torch.nn.functional as F
 # from skimage.viewer import ImageViewer
 
@@ -27,6 +27,7 @@ MESSAGE = {
     "message": "success",
     "res": {}
 }
+
 
 month = ['January', 'February', 'March', 'April', 'May',
          'June', 'July', 'August', 'September',
@@ -182,14 +183,14 @@ def recognition():
     digit_crop = digit_image.crop((x, y, endx, endy))
     # digit_crop.show()
     (crop_x, crop_y) = digit_crop.size
-    print(digit_crop.size)
+    # print(digit_crop.size)
     if crop_x > crop_y:
         crop_y = int(crop_y / crop_x * 22)
         crop_x = 22
 
         start = int((28-crop_y)//2)
         mask[:, 3:25][start:start + crop_y, :] = 1
-        print(crop_x, crop_y, 0)
+        # print(crop_x, crop_y, 0)
     else:
         crop_x = int(crop_x / crop_y * 22)
         crop_y = 22
@@ -197,7 +198,7 @@ def recognition():
         start = int((28 - crop_x) / 2)
 
         mask[3:25, :][:, start:start + crop_x] = 1
-        print(crop_x, crop_y, 1)
+        # print(crop_x, crop_y, 1)
 
     digit_crop = digit_crop.resize((crop_x, crop_y), Image.ANTIALIAS)
 
@@ -212,70 +213,49 @@ def recognition():
     # print(mask)
     image.masked_scatter_(mask, im_t)
 
-    # viewer = ImageViewer(image.numpy())
-    # viewer.show()
+    result_list = []
 
-    output = F.softmax(net(image.view(1, -1)), 1)
-    print(output[0])
-    _, predict = torch.max(output.data, 1)
-    print(predict)
-    message["message"] = {"predict":predict.item(),
-                          "probability": dict(zip(range(10), [round(x.item(),3) for x in output[0]]))}
+    # gl121
+    output_121 = F.softmax(net_gl121(torch.masked_select(image.view(1, -1), net_gl121.input_select).view(-1, net_gl121.inputs)), 1)
+    _, result_121 = torch.max(output_121, 1)
+    output_121 = output_121[0]
 
-    # print(im.shape)
-    # viewer = ImageViewer(im)
-    # viewer.show()
-    # im_t = torch.tensor(im).float()
-    # im_t.masked_fill_(im_t.gt(0.5), 1)
+    # sg-l1
+    output_sg = F.softmax(net_sg(torch.masked_select(image.view(1, -1), net_sg.input_select).view(-1, net_sg.inputs)), 1)
+    _, result_sg = torch.max(output_sg, 1)
+    output_sg = output_sg[0]
 
-    #     if file and allowed_image_file(file.filename):
-    #         filename = secure_filename(file.filename)
-    #         # print(os.path.pardir(__file__))
-    #         path = os.path.join(os.path.dirname(__file__), os.path.pardir)
-    #         t = str(datetime.datetime.now()) \
-    #             .replace(":", "") \
-    #             .replace("-", "") \
-    #             .replace(":", "") \
-    #             .replace(".", "") \
-    #             .replace(" ", "")
-    #         re_filename = t + "." + filename.split(".")[-1]
-    #         file.save(os.path.join(os.path.abspath(path) + "/static/images", re_filename))
-    #         message['url'] = "/images/" + re_filename
-    #     else:
-    #         message["success"] = False
-    #         message["message"] = "不允许的图片格式！"
+    # no-regu
+    output_noregu = F.softmax(net_noregu(torch.masked_select(image.view(1, -1), net_noregu.input_select).view(-1, net_noregu.inputs)), 1)
+    _, result_noregu = torch.max(output_noregu, 1)
+    output_noregu = output_noregu[0]
 
+
+    # print(output.item())
+    result_list.append(result_121.item())
+    result_list.append(result_sg.item())
+    result_list.append(result_noregu.item())
+
+    probability_list = []
+
+    for i in range(10):
+        probability = {"index": i,
+                       "gl121": round(output_121[i].item(), 3),
+                       "sgl1": round(output_sg[i].item(), 3),
+                       "noregu": round(output_noregu[i].item(), 3)}
+        probability_list.append(probability)
+    probability_list.append({"index": "网络结构",
+                       "gl121": "528-36-25-36",
+                       "sgl1": "552-41-20-48",
+                       "noregu": "784-400-300-100"})
+    probability_list.append({"index": "文件大小",
+                       "gl121": "90K",
+                       "sgl1": "104K",
+                       "noregu": "1824K"})
+
+    message["res"] = {"result":result_list, "probability": probability_list}
     return jsonify(message)
 
-# @auth.route('/imgDel', methods=['POST'])
-# def img_del():
-#     try:
-#         message = dict(MESSAGE)
-#         reqp = reqparse.RequestParser()
-#         reqp.add_argument("filename", type=str, required=True, location=["json","form"])
-#         args = reqp.parse_args()
-#
-#         filename = args['filename']
-#         path = os.path.join(os.path.dirname(__file__), os.path.pardir)
-#         path_name = os.path.join(os.path.abspath(path) + "/static", filename)
-#         if path_name and os.path.exists(path_name):
-#             os.remove(path_name)
-#     except Exception as e:
-#         traceback.print_exc()
-#         print(e, flush=True)
-#         message["success"] = False
-#         message["message"] = "图片删除失败！"
-#     return jsonify(message)
-
-#
-# @auth.route('/archives')
-# def archives():
-#     return render_template('archives/index.html', enable='')
-#
-#
-# @auth.route('/2018/03/12/hello-world/')
-# def hello():
-#     return render_template('2018/03/12/hello-world/index.html', enable='')
 
 
 @auth.app_errorhandler(404)

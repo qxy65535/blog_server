@@ -22,12 +22,15 @@ def adjust_params(m):
         m.bias.data.masked_fill_(abs(m.bias.data/m.weight.data.shape[1]).le(10 ** -3), 0)
 
 class Net(nn.Module):
-    def __init__(self, input, classes, neurons):
+    def __init__(self, inputs, classes, neurons, input_select=None):
         super(Net, self).__init__()
-        self.input = nn.Linear(input, neurons[0])
+        self.input = nn.Linear(inputs, neurons[0])
         for i in range(len(neurons)-1):
             self.add_module("hidden%d"%i, nn.Linear(neurons[i], neurons[i+1]))
         self.predict = nn.Linear(neurons[-1], classes)
+        self.input_select = input_select
+        self.inputs = inputs
+        self.classes = classes
 
     def forward(self, x):
         for name, layer in self._modules.items():
@@ -59,3 +62,9 @@ class Net(nn.Module):
         for layer in self._modules.values():
             layer.bias.data = bias[i]
             i += 1
+
+    def set_input_select(self, input_select):
+        self.input_select = input_select
+
+    def get_input_select(self):
+        return self.input_select
